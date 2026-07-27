@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+/* ============================================================
+   FOKUS — Dark Neumorphism
+   Eine einzige Grundflaeche. Tiefe entsteht nur durch Licht
+   (oben links) und Schatten (unten rechts), nie durch Rahmen.
+   ============================================================ */
+
+@theme {
+  --color-base: #2b2c30;
+  --color-base-sunk: #26272b;
+  --color-base-lift: #303137;
+
+  --color-shade: #1c1d20;
+  --color-glow: #3b3c43;
+
+  --color-ink: #eceef2;
+  --color-ink-soft: #a2a6b0;
+  --color-ink-dim: #71747d;
+
+  --color-accent: #ff6b2c;
+  --color-accent-from: #ff9040;
+  --color-accent-to: #ef3f14;
+
+  --color-ok: #3fcf8e;
+  --color-warn: #f5b544;
+  --color-danger: #f4553a;
+
+  --radius-card: 26px;
+  --radius-tile: 20px;
+
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+
+    /* Schattenpaare — die gesamte Tiefensprache der App */
+    --nm-raise: 7px 7px 16px var(--color-shade), -7px -7px 16px var(--color-glow);
+    --nm-raise-sm: 4px 4px 9px var(--color-shade), -4px -4px 9px var(--color-glow);
+    --nm-raise-lg: 12px 12px 28px var(--color-shade), -10px -10px 24px var(--color-glow);
+    --nm-sink: inset 5px 5px 11px var(--color-shade), inset -5px -5px 11px var(--color-glow);
+    --nm-sink-sm: inset 3px 3px 7px var(--color-shade), inset -3px -3px 7px var(--color-glow);
+    --nm-accent-glow: 0 10px 26px -6px rgb(239 63 20 / 0.45);
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    background: var(--color-base);
+  }
+
+  body {
+    background: var(--color-base);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* sehr weiches Licht von oben links, wie in der Vorlage */
+    background-image: radial-gradient(
+      120% 90% at 12% -10%,
+      rgb(255 255 255 / 0.045) 0%,
+      transparent 55%
+    );
+    background-attachment: fixed;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+
+  ::selection {
+    background: rgb(255 107 44 / 0.32);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-glow) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-glow);
+    border-radius: 999px;
+  }
+}
+
+@layer components {
+  /* ---------- Flaechen ---------- */
+  .nm-raise {
+    background: var(--color-base);
+    box-shadow: var(--nm-raise);
+  }
+  .nm-raise-sm {
+    background: var(--color-base);
+    box-shadow: var(--nm-raise-sm);
+  }
+  .nm-raise-lg {
+    background: var(--color-base);
+    box-shadow: var(--nm-raise-lg);
+  }
+  .nm-sink {
+    background: var(--color-base);
+    box-shadow: var(--nm-sink);
+  }
+  .nm-sink-sm {
+    background: var(--color-base);
+    box-shadow: var(--nm-sink-sm);
+  }
+
+  /* Karte: leichter Verlauf simuliert die gewoelbte Oberflaeche */
+  .nm-card {
+    background: linear-gradient(145deg, var(--color-base-lift) 0%, var(--color-base-sunk) 100%);
+    box-shadow: var(--nm-raise);
+    border-radius: var(--radius-card);
+  }
+
+  /* ---------- Interaktion ---------- */
+  .nm-press {
+    transition:
+      box-shadow 220ms var(--ease-soft),
+      transform 220ms var(--ease-soft);
+  }
+  .nm-press:active {
+    box-shadow: var(--nm-sink-sm);
+    transform: translateY(1px);
+  }
+
+  /* ---------- Akzent ---------- */
+  .nm-accent {
+    background: linear-gradient(135deg, var(--color-accent-from) 0%, var(--color-accent-to) 100%);
+    box-shadow: var(--nm-accent-glow);
+    color: #fff;
+  }
+  .text-accent-gradient {
+    background: linear-gradient(135deg, var(--color-accent-from) 0%, var(--color-accent-to) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---------- Typo ---------- */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+  }
+  .label-xs {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-dim);
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .safe-b {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+/* ---------- Bewegung ---------- */
+@keyframes fokus-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-rise {
+  animation: fokus-rise 420ms var(--ease-soft) both;
+}
+
+@keyframes fokus-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+.animate-soft-pulse {
+  animation: fokus-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
