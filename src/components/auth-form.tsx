@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { Logo } from "@/components/logo";
 import { SubmitButton } from "@/components/ui/button";
 import { Field, FormError, Input } from "@/components/ui/field";
 import type { FormState } from "@/lib/actions/auth";
@@ -22,8 +23,8 @@ export function AuthForm({
   return (
     <div className="animate-rise">
       <div className="mb-10">
-        <div className="nm-accent mb-7 grid h-14 w-14 place-items-center rounded-[20px]">
-          <span className="display text-2xl">F</span>
+        <div className="nm-raise mb-7 grid h-16 w-16 place-items-center rounded-[22px]">
+          <Logo className="h-9 w-9" id="auth-mark" />
         </div>
         <h1 className="display text-[3.2rem] text-ink">
           {isRegister ? (

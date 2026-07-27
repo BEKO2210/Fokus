@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Icon } from "@/components/icons";
+import { Logo } from "@/components/logo";
 import { cn } from "@/lib/cn";
 
 const ITEMS = [
@@ -60,8 +61,12 @@ export function AppNav() {
         aria-label="Hauptnavigation"
         className="fixed left-0 top-0 z-40 hidden h-dvh w-24 flex-col items-center gap-4 py-8 md:flex"
       >
-        <Link href="/" aria-label="Fokus Startseite" className="nm-accent grid h-12 w-12 place-items-center rounded-2xl">
-          <span className="display text-xl">F</span>
+        <Link
+          href="/"
+          aria-label="Fokus Startseite"
+          className="nm-raise nm-press grid h-12 w-12 place-items-center rounded-2xl"
+        >
+          <Logo className="h-7 w-7" id="nav-mark" />
         </Link>
         <div className="mt-6 flex flex-col gap-3">
           {ITEMS.map((item) => {

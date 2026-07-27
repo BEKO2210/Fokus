@@ -25,7 +25,11 @@ export const metadata: Metadata = {
   applicationName: "Fokus",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    icon: [
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/mark.svg", type: "image/svg+xml" },
+    ],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
   appleWebApp: {
@@ -40,6 +44,13 @@ export const metadata: Metadata = {
     siteName: "Fokus",
     locale: "de_DE",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Fokus — Projekte im Überblick halten" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fokus — Projekt-Cockpit",
+    description: "Projekte im Überblick halten, ohne sich zu verzetteln.",
+    images: ["/og.png"],
   },
   robots: { index: false, follow: false },
 };
