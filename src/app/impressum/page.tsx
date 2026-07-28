@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "@/components/legal-page";
+import { MailLink } from "@/components/mail-link";
+
+// Muss dynamisch rendern: die CSP vergibt pro Aufruf eine neue Nonce, und die
+// kann eine zur Bauzeit erzeugte Seite nicht kennen — ihre Scripts wuerden
+// blockiert und die Seite bliebe unhydriert.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Impressum",
@@ -23,7 +29,7 @@ export default function ImpressumPage() {
         Deutschland
       </p>
       <p>
-        E-Mail: <a href="mailto:belkis.aslani@gmail.com">belkis.aslani@gmail.com</a>
+        E-Mail: <MailLink user="belkis.aslani" domain="gmail.com" />
       </p>
 
       <h2>Charakter des Angebots</h2>

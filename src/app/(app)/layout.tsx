@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { AppNav } from "@/components/app-nav";
+import { MailLink } from "@/components/mail-link";
 import { VerifyBanner } from "@/components/verify-banner";
 import { getUser } from "@/lib/appwrite/server";
 
@@ -28,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <footer className="mt-20 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/5 pt-6 text-xs text-ink-dim">
             <Link href="/impressum">Impressum</Link>
             <Link href="/datenschutz">Datenschutz</Link>
-            <a href="mailto:belkis.aslani@gmail.com">Kontakt</a>
+            <MailLink user="belkis.aslani" domain="gmail.com">Kontakt</MailLink>
           </footer>
         </div>
       </main>

@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "@/components/legal-page";
+import { MailLink } from "@/components/mail-link";
+
+// Muss dynamisch rendern: die CSP vergibt pro Aufruf eine neue Nonce, und die
+// kann eine zur Bauzeit erzeugte Seite nicht kennen — ihre Scripts wuerden
+// blockiert und die Seite bliebe unhydriert.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Datenschutz",
@@ -15,7 +21,7 @@ export default function DatenschutzPage() {
       <h2>Verantwortlicher</h2>
       <p>
         Belkis Aslani, Vogelsangstr. 32, 71691 Freiberg am Neckar, Deutschland. E-Mail{" "}
-        <a href="mailto:belkis.aslani@gmail.com">belkis.aslani@gmail.com</a>. Anschrift
+        <MailLink user="belkis.aslani" domain="gmail.com" />. Anschrift
         siehe <Link href="/impressum">Impressum</Link>. Ein Datenschutzbeauftragter ist
         nicht bestellt; die Voraussetzungen des § 38 BDSG liegen nicht vor.
       </p>

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { Icon } from "@/components/icons";
 import { Logo } from "@/components/logo";
+import { MailLink } from "@/components/mail-link";
 
 /**
  * Rahmen für Impressum und Datenschutz. Bewusst ohne App-Navigation:
@@ -54,6 +55,7 @@ export function LegalPage({
       <footer className="mt-14 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/5 pt-6 text-xs text-ink-dim">
         <Link href="/impressum">Impressum</Link>
         <Link href="/datenschutz">Datenschutz</Link>
+        <MailLink user="belkis.aslani" domain="gmail.com">Kontakt</MailLink>
         <Link href="/anmelden">Anmelden</Link>
       </footer>
     </main>
