@@ -41,9 +41,13 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("passwordConfirm") ?? "");
 
   if (!name || !email || password.length < 8) {
     return { error: "Name, E-Mail und mindestens 8 Zeichen Passwort." };
+  }
+  if (password !== confirm) {
+    return { error: "Die beiden Passwörter stimmen nicht überein." };
   }
 
   try {

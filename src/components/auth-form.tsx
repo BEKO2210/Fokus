@@ -83,6 +83,27 @@ export function AuthForm({
           />
         </Field>
 
+        {isRegister ? (
+          <Field label="Passwort wiederholen" htmlFor="passwordConfirm">
+            <Input
+              id="passwordConfirm"
+              name="passwordConfirm"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              placeholder="••••••••"
+            />
+          </Field>
+        ) : (
+          <Link
+            href="/passwort-vergessen"
+            className="-mt-1 self-start text-sm text-ink-soft underline-offset-4 hover:text-accent hover:underline"
+          >
+            Passwort vergessen?
+          </Link>
+        )}
+
         <FormError message={state?.error} />
 
         <SubmitButton size="lg" className="mt-2 w-full" pendingLabel="Einen Moment …">

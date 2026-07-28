@@ -13,6 +13,7 @@ Live: https://fokus.it-handwerk-stuttgart.de
 | Styling  | Tailwind CSS v4, neumorphes Token-Set in `src/app/globals.css` |
 | Backend  | Appwrite 1.9.5 self-hosted, Projekt `fokus`                    |
 | Auth     | Appwrite-SSR — Session-Secret im HttpOnly-Cookie `fokus_session` |
+| E-Mail   | AgentMail (`support-master@agentmail.to`) für Passwort-Links      |
 | Betrieb  | systemd-user-Service `fokus.service`, Port 3016, Cloudflare-Tunnel |
 
 Es gibt bewusst **kein** Appwrite-SDK im Browser: alle Aufrufe laufen serverseitig über
@@ -57,11 +58,26 @@ NEXT_PUBLIC_APPWRITE_PROJECT=fokus
 NEXT_PUBLIC_APPWRITE_DB=fokus
 NEXT_PUBLIC_SITE_URL=https://fokus.it-handwerk-stuttgart.de
 APPWRITE_API_KEY=…
+AGENTMAIL_API_KEY=…
+AGENTMAIL_INBOX=support-master@agentmail.to
 ```
 
-Der API-Key wird nur für Registrierung und Login gebraucht — Appwrite verlangt dafür einen
-Admin-Client. Nötige Scopes: `users.*`, `sessions.write`, `databases.*`, `collections.*`,
-`attributes.*`, `indexes.*`, `documents.*`.
+Der API-Key wird nur für Registrierung, Login und das Zurücksetzen von Passwörtern gebraucht —
+Appwrite verlangt dafür einen Admin-Client. Nötige Scopes: `users.*`, `sessions.write`,
+`databases.*`, `collections.*`, `attributes.*`, `indexes.*`, `documents.*`.
+
+## Passwort zurücksetzen
+
+Appwrites eingebaute Recovery-Mail setzt SMTP am Projekt voraus. Statt das zu
+konfigurieren, verschickt Fokus die Mail selbst über AgentMail:
+
+1. `/passwort-vergessen` → `users.createToken()` erzeugt ein Einmal-Geheimnis (1 Stunde gültig),
+   der Link geht per AgentMail raus. Die Antwort ist immer gleich, damit das Formular nicht
+   verrät, welche Adressen registriert sind.
+2. `/passwort-neu` → `account.createSession()` löst den Token ein und entwertet ihn. Erst danach
+   setzt `users.updatePassword()` das neue Passwort, ohne das alte zu kennen.
+3. Appwrite beendet bei jedem Passwortwechsel **alle** Sessions. Deshalb meldet der Server
+   direkt danach mit dem neuen Passwort neu an — sonst landet man trotz Erfolg wieder im Login.
 
 ## Betrieb
 
