@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { Client, Users } from "node-appwrite";
 
 import { APPWRITE } from "@/lib/appwrite/config";
@@ -62,6 +61,12 @@ export async function resendVerification(_prev: VerifyState, _fd: FormData): Pro
  *
  * `createSession` prüft und entwertet den Token in einem Schritt — nur wer die
  * Mail bekommen hat, kommt hier durch.
+ *
+ * Bewusst OHNE `revalidatePath`: diese Funktion läuft beim Aufbau der
+ * Bestätigungsseite, und dort ist ein Neuvalidieren in Next.js 16 nicht
+ * erlaubt — es wirft und die Seite meldete dann fälschlich "Link abgelaufen",
+ * obwohl die Bestätigung längst durch war. Nötig ist es auch nicht: die
+ * geschützten Seiten laden den Nutzer bei jedem Aufruf frisch.
  */
 export async function confirmEmail(
   userId: string,
@@ -71,13 +76,22 @@ export async function confirmEmail(
   const gate = hit(`confirm:${ip}`, 20, 60 * 60);
   if (!gate.ok) return { ok: false, reason: "zu viele Versuche" };
 
+  const users = adminUsers();
+
   try {
     const { account } = createAdminClient();
     await account.createSession({ userId, secret });
-    await adminUsers().updateEmailVerification({ userId, emailVerification: true });
-    revalidatePath("/", "layout");
+    await users.updateEmailVerification({ userId, emailVerification: true });
     return { ok: true };
   } catch (err) {
+    // Der Token ist einmalig. Ein zweiter Klick, ein Neuladen oder ein
+    // Vorabruf durch den Mail-Client verbraucht ihn — dann ist "schon
+    // bestätigt" die richtige Antwort, nicht "abgelaufen".
+    try {
+      if ((await users.get({ userId })).emailVerification) return { ok: true };
+    } catch {
+      // Nutzer gibt es nicht mehr — dann bleibt es beim Fehler unten.
+    }
     console.error("[verify] Bestätigung fehlgeschlagen", err);
     return { ok: false, reason: "abgelaufen" };
   }
