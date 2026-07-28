@@ -4,14 +4,14 @@
  * nur statische Bauartefakte und Icons liegen im Cache. So kann der
  * Worker keine veralteten Projektdaten ausliefern.
  */
-const VERSION = "fokus-v1";
+const VERSION = "fokus-v2";
 const STATIC_CACHE = `${VERSION}-static`;
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) =>
-      cache.addAll([OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"]),
+      cache.addAll([OFFLINE_URL, "/icons/mark-192.png", "/icons/mark-512.png"]),
     ),
   );
   self.skipWaiting();

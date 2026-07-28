@@ -16,10 +16,10 @@ export default function manifest(): MetadataRoute.Manifest {
     dir: "ltr",
     categories: ["productivity"],
     icons: [
-      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icons/maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/mark-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/mark-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/mark-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icons/mark-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
       { name: "Fokus starten", url: "/fokus" },
