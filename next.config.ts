@@ -3,23 +3,11 @@ import type { NextConfig } from "next";
 /**
  * Sicherheitsheader für alle Antworten.
  *
- * Die CSP ist bewusst eng: Die App lädt keine fremden Skripte, Schriften oder
- * Bilder — alles kommt vom eigenen Server. `unsafe-inline` bleibt bei Styles
- * nötig, weil React Inline-Styles setzt; bei Skripten nicht.
+ * Die Content-Security-Policy steht NICHT hier, sondern in `src/proxy.ts` —
+ * sie braucht pro Aufruf eine frische Nonce, damit Next.js seine eigenen
+ * Inline-Scripts signieren kann. Eine feste CSP an dieser Stelle hat die
+ * Hydration lahmgelegt.
  */
-const csp = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data:",
-  "font-src 'self'",
-  "connect-src 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "object-src 'none'",
-].join("; ");
-
 const nextConfig: NextConfig = {
   poweredByHeader: false,
 
@@ -28,7 +16,6 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: csp },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           // Fremde Ziele bekommen nur die Herkunft, nie Pfad oder Query — das

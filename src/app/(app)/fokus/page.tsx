@@ -39,7 +39,11 @@ export default async function FocusPage() {
         lead="Wähle die Aufgabe, stell die Dauer ein, und lass alles andere liegen."
       />
 
-      <FocusTimer candidates={candidates} />
+      <FocusTimer
+        candidates={candidates}
+        emptyReason={projects.length === 0 ? "keine-projekte" : "keine-aufgaben"}
+        firstProjectId={projects[0]?.id ?? null}
+      />
 
       <section className="mt-14">
         <SectionTitle right={<span className="label-xs">{weekMinutes} min gesamt</span>}>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/icons";
@@ -60,7 +61,16 @@ function clock(totalSeconds: number) {
   return `${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
+export function FocusTimer({
+  candidates,
+  emptyReason,
+  firstProjectId,
+}: {
+  candidates: FocusCandidate[];
+  /** Warum die Liste leer ist — bestimmt den Hinweistext. */
+  emptyReason: "keine-projekte" | "keine-aufgaben";
+  firstProjectId: string | null;
+}) {
   const [minutes, setMinutes] = useState<number>(25);
   const [selectedId, setSelectedId] = useState<string | null>(candidates[0]?.task.id ?? null);
   const [running, setRunning] = useState(false);
@@ -307,8 +317,30 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
           Woran arbeitest du?
         </p>
         {candidates.length === 0 ? (
-          <div className="nm-sink rounded-2xl px-5 py-6 text-center text-sm text-ink-soft">
-            Keine offene Aufgabe. Du kannst trotzdem eine freie Sitzung laufen lassen.
+          <div className="nm-sink flex flex-col items-center gap-4 rounded-2xl px-5 py-7 text-center">
+            <p className="text-sm leading-relaxed text-ink-soft">
+              {emptyReason === "keine-aufgaben" ? (
+                <>
+                  Hier stehen deine <strong className="text-ink">Aufgaben</strong>, nicht die
+                  Projekte. Leg in einem Projekt die erste Aufgabe an — dann kannst du sie
+                  hier auswählen.
+                </>
+              ) : (
+                <>
+                  Noch kein Projekt angelegt. Fang mit einem an, trag eine Aufgabe ein, und
+                  such sie dir hier aus.
+                </>
+              )}
+            </p>
+            <Link
+              href={firstProjectId ? `/projekt/${firstProjectId}` : "/projekt/neu"}
+              className="nm-raise nm-press inline-flex h-11 items-center rounded-full px-5 text-sm font-medium text-ink"
+            >
+              {firstProjectId ? "Aufgabe anlegen" : "Projekt anlegen"}
+            </Link>
+            <p className="text-xs text-ink-dim">
+              Du kannst die Uhr auch ohne Aufgabe laufen lassen.
+            </p>
           </div>
         ) : (
           <ul className="flex flex-col gap-2.5" aria-labelledby="aufgabe-label">
