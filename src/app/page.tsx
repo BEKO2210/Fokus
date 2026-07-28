@@ -136,7 +136,7 @@ export default async function LandingPage() {
               </a>
             </div>
             <p className="mt-5 text-xs leading-relaxed text-ink-dim">
-              Kostenlos · keine Werbung · keine Analyse-Werkzeuge · deine Daten jederzeit
+              Kostenlos · keine Werbung · im Konto keine Auswertung · deine Daten jederzeit
               als Datei exportierbar
             </p>
           </div>
@@ -256,7 +256,7 @@ export default async function LandingPage() {
             {[
               [
                 "Deine Daten gehören dir",
-                "Kein Tracking, keine Werbung, kein Weiterverkauf. Ein Klick lädt alles als Datei herunter, ein zweiter löscht dein Konto vollständig.",
+                "Im angemeldeten Bereich wird nichts mitgeschrieben — keine Werbung, kein Weiterverkauf. Ein Klick lädt alles als Datei herunter, ein zweiter löscht dein Konto vollständig.",
               ],
               [
                 "Nur du siehst deine Projekte",

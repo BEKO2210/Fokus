@@ -22,13 +22,18 @@ export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isDev = process.env.NODE_ENV === "development";
 
+  // Selbst gehostete Statistik (cookielos). Das Script traegt die Nonce, die
+  // Messpunkte gehen per fetch an dieselbe Herkunft — beides muss die CSP
+  // ausdruecklich erlauben, sonst zaehlt Plausible lautlos nichts.
+  const STATS_ORIGIN = "https://stats.it-handwerk-stuttgart.de";
+
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
-    "connect-src 'self'",
+    `connect-src 'self' ${STATS_ORIGIN}`,
     "form-action 'self'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
@@ -38,6 +43,9 @@ export function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  // Das Layout entscheidet daran, ob die Reichweitenmessung mitlaeuft — sie
+  // gilt nur fuer die oeffentlichen Seiten, nie fuer das eingeloggte Konto.
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
   requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });

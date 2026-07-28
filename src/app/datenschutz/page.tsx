@@ -28,11 +28,30 @@ export default function DatenschutzPage() {
 
       <h2>Grundsatz</h2>
       <p>
-        Fokus kommt ohne Analyse-Werkzeuge, ohne Werbenetzwerke und ohne Nutzerprofile
-        aus. Es werden keine Daten verkauft oder für Werbung ausgewertet. Schriften werden
-        vom eigenen Server geladen, es gibt keine Verbindung zu Google Fonts oder
-        ähnlichen Diensten. Ein Einwilligungsbanner entfällt, weil ausschließlich technisch
-        notwendige Speichervorgänge stattfinden (§ 25 Abs. 2 Nr. 2 TDDDG).
+        Fokus kommt ohne Werbenetzwerke und ohne Nutzerprofile aus. Es werden keine Daten
+        verkauft oder für Werbung ausgewertet. Schriften werden vom eigenen Server geladen,
+        es gibt keine Verbindung zu Google Fonts oder ähnlichen Diensten. Im angemeldeten
+        Bereich läuft keinerlei Auswertung mit. Ein Einwilligungsbanner entfällt, weil
+        ausschließlich technisch notwendige Speichervorgänge stattfinden
+        (§ 25 Abs. 2 Nr. 2 TDDDG) — auch die unten beschriebene Reichweitenmessung legt
+        weder Cookies an noch liest sie etwas aus dem Gerät.
+      </p>
+
+      <h2>Reichweitenmessung</h2>
+      <p>
+        Auf den öffentlichen Seiten (Startseite, Anmelden, Registrieren, Impressum,
+        Datenschutz) zählt <strong>Plausible Analytics</strong> die Aufrufe. Die Software
+        läuft auf demselben privaten Server wie Fokus, es fließen keine Daten an Dritte
+        ab. Erhoben werden ausschließlich Seitenaufruf, verweisende Seite, grober
+        Gerätetyp und Land — ohne Cookies, ohne Kennung über mehrere Besuche hinweg und
+        ohne dass daraus eine Person erkennbar wird. Die IP-Adresse wird nicht
+        gespeichert, sondern nur kurzzeitig zu einem nicht rückrechenbaren Tageswert
+        verarbeitet. Rechtsgrundlage ist das berechtigte Interesse an einer schlichten
+        Besucherzählung (Art. 6 Abs. 1 lit. f DSGVO).
+      </p>
+      <p>
+        Sobald Sie angemeldet sind, wird nichts mehr gemessen: Übersicht, Projekte,
+        Aufgaben und Fokussitzungen tauchen in keiner Statistik auf.
       </p>
 
       <h2>Nutzerkonto</h2>

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 
 import { ServiceWorker } from "@/components/service-worker";
 
@@ -63,14 +65,44 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+/**
+ * Selbst gehostete Reichweitenmessung (Plausible, cookielos, keine Profile).
+ *
+ * Bewusst nur auf den oeffentlichen Seiten: wie viele Leute die Startseite
+ * sehen und ob sie bis zur Anmeldung kommen. Im eingeloggten Konto laeuft
+ * nichts mit — dort verspricht Fokus ausdruecklich keine Auswertung, und
+ * Projektpfade haben in einer Statistik ohnehin nichts verloren.
+ *
+ * Ausserdem nur unter der oeffentlichen Adresse; lokal wuerde die Messung die
+ * Zahlen nur verfaelschen.
+ */
+const STATS_SRC = "https://stats.it-handwerk-stuttgart.de/js/script.js";
+const STATS_DOMAIN = "fokus.it-handwerk-stuttgart.de";
+const OEFFENTLICHE_PFADE = ["/", "/anmelden", "/registrieren", "/passwort-vergessen", "/impressum", "/datenschutz"];
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Ohne Nonce blockt die eigene CSP das Script — siehe src/proxy.ts.
+  const h = await headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+  const pfad = h.get("x-pathname") ?? "";
+  const statsAn = siteUrl.includes(STATS_DOMAIN) && OEFFENTLICHE_PFADE.includes(pfad);
+
   return (
     <html lang="de" className={`${jakarta.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         {children}
         <ServiceWorker />
+        {statsAn && (
+          <Script
+            defer
+            nonce={nonce}
+            data-domain={STATS_DOMAIN}
+            src={STATS_SRC}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
