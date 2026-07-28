@@ -19,7 +19,7 @@ export default function NewProjectPage() {
             Projekt
           </>
         }
-        lead="Nur der Name ist Pflicht. Alles andere kannst du später ergänzen."
+        lead="Nur der Name ist Pflicht. Fang klein an — alles andere kannst du jederzeit ergänzen, wenn du es brauchst."
       />
       <ProjectForm action={createProject} submitLabel="Projekt anlegen" />
     </div>

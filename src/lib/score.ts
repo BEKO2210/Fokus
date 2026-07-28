@@ -1,3 +1,4 @@
+import { dayKey, daysBetweenKeys, todayKey } from "./time";
 import type { Task } from "./types";
 
 export type ScoreInput = Pick<Task, "impact" | "urgency" | "effort" | "confidence">;
@@ -48,15 +49,12 @@ export function projectProgress(total: number, done: number): number {
   return Math.round((done / total) * 100);
 }
 
-/** Tage bis zur Deadline. Negativ = ueberfaellig. */
+/** Tage bis zur Deadline, gerechnet in deutscher Zeit. Negativ = ueberfaellig. */
 export function daysUntil(iso: string | null): number | null {
   if (!iso) return null;
-  const target = new Date(iso);
-  if (Number.isNaN(target.getTime())) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  target.setHours(0, 0, 0, 0);
-  return Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  const target = dayKey(iso);
+  if (!target) return null;
+  return daysBetweenKeys(todayKey(), target);
 }
 
 export function formatDeadline(iso: string | null): string | null {
@@ -67,5 +65,10 @@ export function formatDeadline(iso: string | null): string | null {
   if (days === -1) return "1 Tag überfällig";
   if (days < 0) return `${Math.abs(days)} Tage überfällig`;
   if (days <= 30) return `in ${days} Tagen`;
-  return new Date(iso!).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(iso!).toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "Europe/Berlin",
+  });
 }

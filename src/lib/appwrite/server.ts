@@ -37,6 +37,7 @@ export type SessionUser = {
   id: string;
   name: string;
   email: string;
+  emailVerified: boolean;
 };
 
 /** Aktuellen Nutzer laden, oder null wenn keine gueltige Session existiert. */
@@ -45,7 +46,12 @@ export async function getUser(): Promise<SessionUser | null> {
   if (!client) return null;
   try {
     const me = await client.account.get();
-    return { id: me.$id, name: me.name, email: me.email };
+    return {
+      id: me.$id,
+      name: me.name,
+      email: me.email,
+      emailVerified: Boolean(me.emailVerification),
+    };
   } catch {
     return null;
   }

@@ -35,7 +35,7 @@ export function PageHeader({
       </div>
 
       {eyebrow ? <p className="label-xs">{eyebrow}</p> : null}
-      <h1 className="display mt-2 text-[2.6rem] text-ink">{title}</h1>
+      <h1 className="display mt-2 hyphens-auto break-words text-[2.6rem] text-ink">{title}</h1>
       {lead ? <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-soft">{lead}</p> : null}
     </header>
   );

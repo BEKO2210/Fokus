@@ -3,9 +3,10 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 const CONTROL =
-  "w-full nm-sink rounded-2xl px-4 text-ink placeholder:text-ink-dim/80 " +
-  "outline-none transition-shadow duration-200 " +
-  "focus:shadow-[inset_2px_2px_6px_var(--color-shade),inset_-2px_-2px_6px_var(--color-glow),0_0_0_1.5px_var(--color-accent)]";
+  "w-full nm-sink nm-edge rounded-2xl px-4 text-ink placeholder:text-ink-dim " +
+  "transition-shadow duration-200 " +
+  "focus:outline-none " +
+  "focus:shadow-[inset_2px_2px_6px_var(--color-shade),inset_-2px_-2px_6px_var(--color-glow),0_0_0_2px_var(--color-accent)]";
 
 export function Field({
   label,
@@ -62,7 +63,7 @@ export function FormError({ message }: { message?: string }) {
   return (
     <p
       role="alert"
-      className="nm-sink-sm rounded-2xl px-4 py-3 text-sm text-danger"
+      className="nm-sink-sm rounded-2xl px-4 py-3 text-sm text-[var(--color-danger-text)]"
     >
       {message}
     </p>

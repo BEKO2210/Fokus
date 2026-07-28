@@ -10,6 +10,7 @@ import { getUser } from "@/lib/appwrite/server";
 import { focusByDay, loadRecentSessions, loadWorkspace } from "@/lib/data";
 import { plural } from "@/lib/plural";
 import { daysUntil, priorityScore } from "@/lib/score";
+import { dayKey, todayKey } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +39,8 @@ export default async function OverviewPage() {
     return d !== null && d <= 7 && p.status !== "archived" && p.status !== "shipped";
   }).length;
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const doneToday = tasks.filter(
-    (t) => t.completedAt && new Date(t.completedAt) >= startOfDay,
-  ).length;
+  const today = todayKey();
+  const doneToday = tasks.filter((t) => t.completedAt && dayKey(t.completedAt) === today).length;
 
   const bars = focusByDay(sessions, 7);
   const focusToday = Math.round((bars.at(-1)?.seconds ?? 0) / 60);
@@ -72,8 +70,8 @@ export default async function OverviewPage() {
       {projects.length === 0 ? (
         <EmptyState
           icon={<Icon.Grid className="h-6 w-6" />}
-          title="Noch kein Projekt"
-          body="Leg dein erstes Projekt an. Danach siehst du hier Fortschritt, Deadlines und die Aufgabe, die als Nächstes dran ist."
+          title="Noch nichts drin"
+          body="Trag ein, was dir gerade im Kopf herumgeht — Umzug, Steuererklärung, das Regal im Flur. Sobald du Aufgaben dazu anlegst, sagt dir Fokus, womit du anfängst."
           action={
             <LinkButton href="/projekt/neu" variant="accent" className="mt-2">
               Erstes Projekt anlegen
@@ -88,10 +86,10 @@ export default async function OverviewPage() {
               unit="offen"
               caption={`${plural(activeCount, "aktives Projekt", "aktive Projekte")}`}
               satellites={[
-                { icon: <Icon.Flame className="h-4 w-4" />, label: "Kritisch", value: String(troubled), hot: troubled > 0 },
-                { icon: <Icon.Calendar className="h-4 w-4" />, label: "Diese Woche fällig", value: String(dueSoon) },
-                { icon: <Icon.Bolt className="h-4 w-4" />, label: "Aktive Projekte", value: String(activeCount) },
-                { icon: <Icon.Check className="h-4 w-4" />, label: "Heute erledigt", value: String(doneToday) },
+                { icon: <Icon.Flame className="h-4 w-4" />, label: "brauchen Hilfe", value: String(troubled), hot: troubled > 0 },
+                { icon: <Icon.Calendar className="h-4 w-4" />, label: "diese Woche fällig", value: String(dueSoon) },
+                { icon: <Icon.Bolt className="h-4 w-4" />, label: "laufen gerade", value: String(activeCount) },
+                { icon: <Icon.Check className="h-4 w-4" />, label: "heute geschafft", value: String(doneToday) },
               ]}
             />
 
@@ -145,14 +143,16 @@ export default async function OverviewPage() {
           <section>
             <SectionTitle
               right={
-                <Link href="/projekt/neu" className="text-sm font-semibold text-accent">
+                <Link href="/projekt/neu" className="-my-3 py-3 text-sm font-semibold text-accent">
                   Neu
                 </Link>
               }
             >
               Projekte
             </SectionTitle>
-            <div className="grid gap-4 lg:grid-cols-2">
+            {/* minmax(0,1fr) ist nötig: ohne das zieht ein einziger langer
+                Projektname die Spalte auf und die ganze Seite scrollt seitwärts. */}
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
               {live.map((p) => (
                 <ProjectCard key={p.id} project={p} />
               ))}

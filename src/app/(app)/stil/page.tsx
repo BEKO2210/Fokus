@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { Icon } from "@/components/icons";
 import { Logo } from "@/components/logo";
@@ -24,6 +25,10 @@ function Block({ title, note, children }: { title: string; note?: string; childr
 }
 
 export default function StylePage() {
+  // Baukasten für die Entwicklung. Fremde Nutzer würden hier landen und es für
+  // einen Fehler halten — im Betrieb nur mit gesetztem Schalter erreichbar.
+  if (process.env.SHOW_STYLE_GUIDE !== "1") notFound();
+
   return (
     <div className="animate-rise">
       <PageHeader

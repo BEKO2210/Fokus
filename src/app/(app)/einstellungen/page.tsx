@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { DeleteAccount } from "@/components/delete-account";
 import { Icon } from "@/components/icons";
 import { ImportForm } from "@/components/import-form";
 import { PageHeader } from "@/components/page-header";
@@ -73,35 +74,47 @@ export default async function SettingsPage() {
       </section>
 
       <section className="mb-10">
-        <SectionTitle>Wie die Priorität entsteht</SectionTitle>
+        <SectionTitle>Wie Fokus sortiert</SectionTitle>
         <div className="nm-sink rounded-[var(--radius-card)] p-5">
-          <p className="mb-4 font-mono text-sm text-accent">
-            (Wirkung × Dringlichkeit × Zuversicht) ÷ Aufwand
+          <p className="mb-4 text-sm leading-relaxed text-ink-soft">
+            Für jede Aufgabe schätzt du vier Dinge. Daraus entsteht eine Zahl, und die
+            oberste Aufgabe ist die, die als Nächstes dran ist. Du musst dich nicht mehr
+            entscheiden — das ist der ganze Trick.
           </p>
           <ul className="flex flex-col gap-2 text-sm leading-relaxed text-ink-soft">
             <li>
-              <strong className="text-ink">Wirkung</strong> — wie viel bewegt sich, wenn es fertig ist.
+              <strong className="text-ink">Bringt viel</strong> — wie viel ändert sich, wenn es
+              erledigt ist.
             </li>
             <li>
-              <strong className="text-ink">Dringlichkeit</strong> — wie teuer wird Warten.
+              <strong className="text-ink">Eilt</strong> — wie teuer wird es, wenn du wartest.
             </li>
             <li>
-              <strong className="text-ink">Aufwand</strong> — teilt den Score, kleine Schritte steigen auf.
+              <strong className="text-ink">Kostet Kraft</strong> — große Brocken rutschen nach
+              unten, kleine Schritte nach oben.
             </li>
             <li>
-              <strong className="text-ink">Zuversicht</strong> — wie sicher bist du dir bei der Einschätzung.
+              <strong className="text-ink">Wie sicher bist du dir</strong> — bei einer vagen Idee
+              zählt die Aufgabe weniger als bei einer klaren.
             </li>
           </ul>
+          <p className="mt-4 text-xs text-ink-dim">
+            Die Rechnung dahinter: (Bringt viel × Eilt × Sicherheit) ÷ Kraft.
+          </p>
         </div>
       </section>
 
-      <section>
+      <section className="flex flex-col gap-8">
         <form action={logout}>
           <Button type="submit" variant="raised" size="md" className="text-ink-soft">
             <Icon.Logout className="h-4 w-4" />
             Abmelden
           </Button>
         </form>
+
+        <div className="border-t border-white/5 pt-8">
+          <DeleteAccount projectCount={projects.length} />
+        </div>
       </section>
     </div>
   );

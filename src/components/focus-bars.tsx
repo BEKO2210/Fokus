@@ -1,12 +1,11 @@
 import { cn } from "@/lib/cn";
+import { weekdayLabel } from "@/lib/time";
 
-export type FocusBar = { day: Date; seconds: number };
+export type FocusBar = { key: string; seconds: number };
 
 function minutes(seconds: number) {
   return Math.round(seconds / 60);
 }
-
-const WEEKDAY = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 /**
  * Wochenbalken. Der heutige Balken glueht orange — das ist der einzige
@@ -23,12 +22,12 @@ export function FocusBars({ bars }: { bars: FocusBar[] }) {
         const mins = minutes(bar.seconds);
 
         return (
-          <div key={bar.day.toISOString()} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+          <div key={bar.key} className="flex min-w-0 flex-1 flex-col items-center gap-2">
             <span
               className={cn(
                 "tnum text-[0.7rem] font-semibold",
                 isToday ? "text-ink" : "text-ink-dim",
-                mins === 0 && "opacity-40",
+                mins === 0 && "opacity-70",
               )}
             >
               {mins}
@@ -43,7 +42,7 @@ export function FocusBars({ bars }: { bars: FocusBar[] }) {
               />
             </div>
             <span className={cn("text-[0.65rem]", isToday ? "text-ink-soft" : "text-ink-dim")}>
-              {WEEKDAY[bar.day.getDay()]}
+              {weekdayLabel(bar.key)}
             </span>
           </div>
         );

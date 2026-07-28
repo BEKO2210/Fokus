@@ -6,6 +6,7 @@ import { ID, Permission, Role } from "node-appwrite";
 
 import { APPWRITE, COLLECTIONS } from "@/lib/appwrite/config";
 import { createSessionClient, getUser } from "@/lib/appwrite/server";
+import { plural } from "@/lib/plural";
 import { PROJECT_HEALTH, PROJECT_STATUS, TASK_STATUS } from "@/lib/types";
 import type { ProjectHealth, ProjectStatus, TaskStatus } from "@/lib/types";
 
@@ -75,6 +76,8 @@ export async function importBackup(_prev: ImportState, fd: FormData): Promise<Im
   // Alte auf neue Projekt-IDs abbilden, damit Aufgaben zugeordnet bleiben.
   const idMap = new Map<string, string>();
   let projectCount = 0;
+  let taskCount = 0;
+  let skipped = 0;
 
   for (const raw of rawProjects as Record<string, unknown>[]) {
     const name = str(raw.name, 120);
@@ -82,11 +85,29 @@ export async function importBackup(_prev: ImportState, fd: FormData): Promise<Im
 
     const status = String(raw.status ?? "active") as ProjectStatus;
     const health = String(raw.health ?? "on_track") as ProjectHealth;
-    const stack = Array.isArray(raw.stack)
-      ? (raw.stack as unknown[])
+    const tags = Array.isArray(raw.tags)
+      ? (raw.tags as unknown[])
           .map((s) => str(s, 40))
           .filter((s): s is string => Boolean(s))
           .slice(0, 12)
+      : [];
+
+    // Nur http und https übernehmen — sonst liesse sich über einen präparierten
+    // Export eine `javascript:`-Adresse einschleusen, die später angeklickt wird.
+    const links = Array.isArray(raw.links)
+      ? (raw.links as unknown[])
+          .map((s) => str(s, 300))
+          .filter((s): s is string => {
+            if (!s) return false;
+            const href = s.includes("|") ? s.slice(s.indexOf("|") + 1) : s;
+            try {
+              const u = new URL(href);
+              return u.protocol === "http:" || u.protocol === "https:";
+            } catch {
+              return false;
+            }
+          })
+          .slice(0, 8)
       : [];
 
     try {
@@ -101,11 +122,9 @@ export async function importBackup(_prev: ImportState, fd: FormData): Promise<Im
           health: PROJECT_HEALTH.includes(health) ? health : "on_track",
           accent: "orange",
           deadline: isoOrNull(raw.deadline),
-          stack,
-          repoUrl: str(raw.repoUrl, 300),
-          liveUrl: str(raw.liveUrl, 300),
-          localPath: str(raw.localPath, 300),
-          port: raw.port == null ? null : int(raw.port, 0, 65535, 0),
+          tags,
+          links,
+          place: str(raw.place, 300),
           pinned: Boolean(raw.pinned),
           sortIndex: int(raw.sortIndex, -99999, 99999, 0),
           notes: str(raw.notes, 8000),
@@ -118,10 +137,10 @@ export async function importBackup(_prev: ImportState, fd: FormData): Promise<Im
       projectCount++;
     } catch {
       // Einzelnes Projekt ueberspringen, Rest weiter importieren.
+      skipped++;
     }
   }
 
-  let taskCount = 0;
   for (const raw of rawTasks as Record<string, unknown>[]) {
     const title = str(raw.title, 200);
     const oldProjectId = typeof raw.projectId === "string" ? raw.projectId : null;
@@ -153,13 +172,16 @@ export async function importBackup(_prev: ImportState, fd: FormData): Promise<Im
       taskCount++;
     } catch {
       // Einzelne Aufgabe ueberspringen.
+      skipped++;
     }
   }
 
   revalidatePath("/");
   revalidatePath("/einstellungen");
 
-  return {
-    summary: `${projectCount} Projekte und ${taskCount} Aufgaben importiert.`,
-  };
+  const kernaussage = `${plural(projectCount, "Projekt", "Projekte")} und ${plural(taskCount, "Aufgabe", "Aufgaben")} importiert.`;
+  // Stilles Verschlucken wäre bei einer Wiederherstellung gefährlich.
+  const hinweis = skipped > 0 ? ` ${plural(skipped, "Eintrag", "Einträge")} konnten nicht angelegt werden.` : "";
+
+  return { summary: kernaussage + hinweis };
 }

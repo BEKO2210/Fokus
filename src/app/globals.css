@@ -16,15 +16,25 @@
 
   --color-ink: #eceef2;
   --color-ink-soft: #a2a6b0;
-  --color-ink-dim: #71747d;
+  /* 4,89:1 auf der Grundflaeche, 4,54:1 auf der Karte — vorher 2,99:1 und
+     damit unter WCAG AA, obwohl daran Formularbeschriftungen und die
+     Navigationstexte haengen. */
+  --color-ink-dim: #9599a3;
 
   --color-accent: #ff6b2c;
   --color-accent-from: #ff9040;
-  --color-accent-to: #ef3f14;
+  /* Etwas heller als das urspruengliche #ef3f14, damit die dunkle Schrift
+     auf dem Verlauf durchgehend ueber 4,5:1 liegt. */
+  --color-accent-to: #f2501c;
+  /* Schrift auf dem Akzent. Weiss erreicht auf diesem Orange nur 2,3:1 bis
+     3,9:1 — dunkle Schrift kommt auf 4,8:1 bis 7,5:1. */
+  --color-on-accent: #1c1d20;
 
   --color-ok: #3fcf8e;
   --color-warn: #f5b544;
   --color-danger: #f4553a;
+  /* Fuer Fehlertexte: der Punkt-Ton bleibt, die Schrift wird heller (5,5:1). */
+  --color-danger-text: #ff7a63;
 
   --radius-card: 26px;
   --radius-tile: 20px;
@@ -126,6 +136,16 @@
     background: var(--color-base);
     box-shadow: var(--nm-sink);
   }
+
+  /*
+   * Eingelassene Bedienelemente brauchen eine wahrnehmbare Kante (WCAG 1.4.11,
+   * 3:1). Die weichen Schatten allein kommen auf 1,2:1 — bei Sonnenlicht auf
+   * dem Handy verschwindet das Feld dann im Hintergrund.
+   */
+  .nm-edge {
+    outline: 1px solid rgb(255 255 255 / 0.14);
+    outline-offset: -1px;
+  }
   .nm-sink-sm {
     background: var(--color-base);
     box-shadow: var(--nm-sink-sm);
@@ -153,7 +173,8 @@
   .nm-accent {
     background: linear-gradient(135deg, var(--color-accent-from) 0%, var(--color-accent-to) 100%);
     box-shadow: var(--nm-accent-glow);
-    color: #fff;
+    color: var(--color-on-accent);
+    font-weight: 600;
   }
   .text-accent-gradient {
     background: linear-gradient(135deg, var(--color-accent-from) 0%, var(--color-accent-to) 100%);

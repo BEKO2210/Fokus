@@ -44,8 +44,14 @@ export function QuickSwitches({
   return (
     <div className={cn("flex flex-col gap-4", pending && "opacity-60")}>
       <div>
-        <p className="label-xs mb-2">Status</p>
-        <div className="nm-sink no-scrollbar flex gap-1.5 overflow-x-auto rounded-full p-1.5">
+        <p className="label-xs mb-2" id="status-label">
+          Status
+        </p>
+        <div
+          className="nm-sink no-scrollbar flex gap-1.5 overflow-x-auto rounded-full p-1.5"
+          role="group"
+          aria-labelledby="status-label"
+        >
           {PROJECT_STATUS.map((s) => (
             <button
               key={s}
@@ -54,7 +60,7 @@ export function QuickSwitches({
               disabled={pending}
               onClick={() => start(async () => void (await setProjectStatus(id, s)))}
               className={cn(
-                "h-9 shrink-0 rounded-full px-4 text-xs font-semibold transition-all duration-200",
+                "h-11 shrink-0 rounded-full px-4 text-xs font-semibold transition-all duration-200",
                 s === status ? "nm-accent" : "text-ink-dim hover:text-ink",
               )}
             >
@@ -65,8 +71,14 @@ export function QuickSwitches({
       </div>
 
       <div>
-        <p className="label-xs mb-2">Zustand</p>
-        <div className="nm-sink flex gap-1.5 rounded-full p-1.5">
+        <p className="label-xs mb-2" id="zustand-label">
+          Zustand
+        </p>
+        <div
+          className="nm-sink flex gap-1.5 rounded-full p-1.5"
+          role="group"
+          aria-labelledby="zustand-label"
+        >
           {PROJECT_HEALTH.map((h) => (
             <button
               key={h}
@@ -75,7 +87,7 @@ export function QuickSwitches({
               disabled={pending}
               onClick={() => start(async () => void (await setProjectHealth(id, h)))}
               className={cn(
-                "flex h-9 flex-1 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold transition-all duration-200",
+                "flex h-11 flex-1 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold transition-all duration-200",
                 h === health ? "nm-raise-sm text-ink" : "text-ink-dim hover:text-ink",
               )}
             >

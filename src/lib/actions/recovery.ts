@@ -7,6 +7,7 @@ import { Client, Query, Users } from "node-appwrite";
 import { APPWRITE, SESSION_COOKIE } from "@/lib/appwrite/config";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { passwordResetMail, sendMail } from "@/lib/mail";
+import { clientIp, hit } from "@/lib/rate-limit";
 
 export type RecoveryState = { error?: string; sent?: boolean } | undefined;
 
@@ -45,6 +46,16 @@ export async function requestPasswordReset(
 
   if (!email || !email.includes("@")) {
     return { error: "Bitte eine gültige E-Mail-Adresse angeben." };
+  }
+
+  // Ohne diese Bremse liesse sich das Postfach jedes registrierten Nutzers
+  // fluten — der Admin-Client umgeht Appwrites eigene Limits.
+  const ip = await clientIp();
+  for (const gate of [hit(`reset:ip:${ip}`, 10, 60 * 60), hit(`reset:mail:${email}`, 3, 15 * 60)]) {
+    if (!gate.ok) {
+      // Neutral bleiben: kein Hinweis darauf, ob die Adresse überhaupt existiert.
+      return { sent: true };
+    }
   }
 
   try {

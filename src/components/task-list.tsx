@@ -97,7 +97,7 @@ function TaskRow({
             })
           }
           className={cn(
-            "nm-press mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl",
+            "nm-press mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-xl",
             done ? "nm-accent" : "nm-sink-sm text-ink-dim hover:text-ink",
           )}
         >

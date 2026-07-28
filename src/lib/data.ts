@@ -1,10 +1,12 @@
 import "server-only";
 
+import { redirect } from "next/navigation";
 import { Query } from "node-appwrite";
 
 import { APPWRITE, COLLECTIONS } from "./appwrite/config";
-import { createSessionClient } from "./appwrite/server";
+import { createSessionClient, getUser } from "./appwrite/server";
 import { priorityScore, projectProgress, sortByPriority } from "./score";
+import { dayKey, shiftDayKey, todayKey } from "./time";
 import type {
   FocusSession,
   Project,
@@ -28,11 +30,9 @@ function toProject(d: Doc): Project {
     health: (d.health as Project["health"]) ?? "on_track",
     accent: (d.accent as string) ?? "orange",
     deadline: (d.deadline as string) ?? null,
-    stack: (d.stack as string[]) ?? [],
-    repoUrl: (d.repoUrl as string) ?? null,
-    liveUrl: (d.liveUrl as string) ?? null,
-    localPath: (d.localPath as string) ?? null,
-    port: (d.port as number) ?? null,
+    tags: (d.tags as string[]) ?? [],
+    links: (d.links as string[]) ?? [],
+    place: (d.place as string) ?? null,
     pinned: Boolean(d.pinned),
     sortIndex: (d.sortIndex as number) ?? 0,
     notes: (d.notes as string) ?? null,
@@ -70,10 +70,21 @@ function toSession(d: Doc): FocusSession {
   };
 }
 
+/**
+ * Datenbank-Zugriff im Namen des Nutzers, plus dessen ID.
+ *
+ * Die ID wandert in jede Abfrage als `ownerId`-Filter. Appwrites
+ * Dokument-Permissions würden fremde Einträge ohnehin ausblenden — aber der
+ * Filter nutzt den `by_owner`-Index, spart der Datenbank die Rechtefilterung
+ * über alle Zeilen hinweg und ist die zweite Verteidigungslinie, falls an den
+ * Permissions je etwas verrutscht.
+ */
 async function db() {
-  const client = await createSessionClient();
-  if (!client) throw new Error("Keine Session");
-  return client.databases;
+  const [client, user] = await Promise.all([createSessionClient(), getUser()]);
+  // Nicht werfen: bei abgelaufener Session soll der Nutzer auf der Anmeldeseite
+  // landen, nicht auf einer Fehlerseite.
+  if (!client || !user) redirect("/anmelden");
+  return { databases: client.databases, ownerId: user.id };
 }
 
 /** Alle Projekte und Aufgaben des Nutzers in einem Rutsch. */
@@ -81,18 +92,18 @@ export async function loadWorkspace(): Promise<{
   projects: ProjectWithStats[];
   tasks: Task[];
 }> {
-  const databases = await db();
+  const { databases, ownerId } = await db();
 
   const [projectRes, taskRes] = await Promise.all([
     databases.listDocuments({
       databaseId: APPWRITE.db,
       collectionId: COLLECTIONS.projects,
-      queries: [Query.limit(200), Query.orderAsc("sortIndex")],
+      queries: [Query.equal("ownerId", ownerId), Query.limit(200), Query.orderAsc("sortIndex")],
     }),
     databases.listDocuments({
       databaseId: APPWRITE.db,
       collectionId: COLLECTIONS.tasks,
-      queries: [Query.limit(1000), Query.orderDesc("$createdAt")],
+      queries: [Query.equal("ownerId", ownerId), Query.limit(1000), Query.orderDesc("$createdAt")],
     }),
   ]);
 
@@ -144,7 +155,7 @@ function orderProjects(a: ProjectWithStats, b: ProjectWithStats): number {
 export async function loadProject(
   id: string,
 ): Promise<{ project: ProjectWithStats; tasks: Task[] } | null> {
-  const databases = await db();
+  const { databases, ownerId } = await db();
   try {
     const [doc, taskRes] = await Promise.all([
       databases.getDocument({
@@ -156,12 +167,15 @@ export async function loadProject(
         databaseId: APPWRITE.db,
         collectionId: COLLECTIONS.tasks,
         queries: [
+          Query.equal("ownerId", ownerId),
           Query.equal("projectId", id),
           Query.limit(500),
           Query.orderDesc("$createdAt"),
         ],
       }),
     ]);
+    // Doppelter Boden: Appwrite liefert fremde Dokumente ohnehin nicht aus.
+    if ((doc as unknown as Doc).ownerId !== ownerId) return null;
     const tasks = (taskRes.documents as unknown as Doc[]).map(toTask);
     return { project: withStats(toProject(doc as unknown as Doc), tasks), tasks };
   } catch {
@@ -170,32 +184,77 @@ export async function loadProject(
 }
 
 export async function loadRecentSessions(limit = 30): Promise<FocusSession[]> {
-  const databases = await db();
+  const { databases, ownerId } = await db();
   const res = await databases.listDocuments({
     databaseId: APPWRITE.db,
     collectionId: COLLECTIONS.sessions,
-    queries: [Query.limit(limit), Query.orderDesc("startedAt")],
+    queries: [Query.equal("ownerId", ownerId), Query.limit(limit), Query.orderDesc("startedAt")],
   });
   return (res.documents as unknown as Doc[]).map(toSession);
 }
 
-/** Sekunden Fokuszeit pro Tag, aelteste zuerst — fuer das Balkendiagramm. */
-export function focusByDay(sessions: FocusSession[], days = 7) {
-  const buckets: { day: Date; seconds: number }[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+/**
+ * Alles laden, ohne Kappungsgrenze — nur für den Export.
+ *
+ * Die Übersicht darf gern bei 200 Projekten aufhören; eine Sicherungskopie,
+ * der still Daten fehlen, wäre dagegen wertlos.
+ */
+export async function loadEverything(): Promise<{
+  projects: Project[];
+  tasks: Task[];
+  sessions: FocusSession[];
+}> {
+  const { databases, ownerId } = await db();
 
-  for (let i = days - 1; i >= 0; i--) {
-    const day = new Date(today);
-    day.setDate(day.getDate() - i);
-    buckets.push({ day, seconds: 0 });
+  async function all(collectionId: string, order: string): Promise<Doc[]> {
+    const out: Doc[] = [];
+    let cursor: string | null = null;
+    for (;;) {
+      const queries = [Query.equal("ownerId", ownerId), Query.limit(100), Query.orderDesc(order)];
+      if (cursor) queries.push(Query.cursorAfter(cursor));
+      const page = await databases.listDocuments({
+        databaseId: APPWRITE.db,
+        collectionId,
+        queries,
+      });
+      const docs = page.documents as unknown as Doc[];
+      out.push(...docs);
+      if (docs.length < 100) break;
+      cursor = docs[docs.length - 1].$id;
+      // Notbremse gegen Endlosschleifen bei unerwarteten Antworten.
+      if (out.length >= 20_000) break;
+    }
+    return out;
   }
 
+  const [projects, tasks, sessions] = await Promise.all([
+    all(COLLECTIONS.projects, "$createdAt"),
+    all(COLLECTIONS.tasks, "$createdAt"),
+    all(COLLECTIONS.sessions, "startedAt"),
+  ]);
+
+  return {
+    projects: projects.map(toProject),
+    tasks: tasks.map(toTask),
+    sessions: sessions.map(toSession),
+  };
+}
+
+/**
+ * Sekunden Fokuszeit pro Kalendertag, aelteste zuerst — fuer das Balkendiagramm.
+ * Tagesgrenzen in deutscher Zeit, nicht in der UTC-Serverzeit.
+ */
+export function focusByDay(sessions: FocusSession[], days = 7) {
+  const today = todayKey();
+  const buckets = Array.from({ length: days }, (_, i) => ({
+    key: shiftDayKey(today, i - (days - 1)),
+    seconds: 0,
+  }));
+  const index = new Map(buckets.map((b) => [b.key, b]));
+
   for (const s of sessions) {
-    const started = new Date(s.startedAt);
-    started.setHours(0, 0, 0, 0);
-    const hit = buckets.find((b) => b.day.getTime() === started.getTime());
-    if (hit) hit.seconds += s.seconds;
+    const bucket = index.get(dayKey(s.startedAt));
+    if (bucket) bucket.seconds += s.seconds;
   }
 
   return buckets;

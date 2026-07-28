@@ -12,6 +12,42 @@ import type { Task } from "@/lib/types";
 
 const PRESETS = [15, 25, 50] as const;
 
+/**
+ * Die laufende Sitzung überlebt Navigation und Neuladen.
+ *
+ * Vorher lag der Zustand nur in useState: ein Tipp auf "Übersicht" und die
+ * Sitzung war weg, ohne Warnung und ohne Protokoll. Bei einer App, deren
+ * Kernfunktion der Timer ist, ist das der teuerste Vertrauensverlust.
+ */
+const STORE_KEY = "fokus.timer.v1";
+
+type Persisted = {
+  startedAt: string;
+  anchor: number | null;
+  carried: number;
+  minutes: number;
+  taskId: string | null;
+};
+
+function readStore(): Persisted | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(STORE_KEY);
+    return raw ? (JSON.parse(raw) as Persisted) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStore(value: Persisted | null) {
+  try {
+    if (value) window.localStorage.setItem(STORE_KEY, JSON.stringify(value));
+    else window.localStorage.removeItem(STORE_KEY);
+  } catch {
+    // Privater Modus oder volle Quote — dann eben ohne Wiederherstellung.
+  }
+}
+
 export type FocusCandidate = {
   task: Task;
   projectId: string;
@@ -41,6 +77,38 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
     [candidates, selectedId],
   );
 
+  const persist = useCallback(() => {
+    if (!startedAtRef.current) {
+      writeStore(null);
+      return;
+    }
+    writeStore({
+      startedAt: startedAtRef.current,
+      anchor: anchorRef.current,
+      carried: carriedRef.current,
+      minutes,
+      taskId: selectedId,
+    });
+  }, [minutes, selectedId]);
+
+  // Beim Mounten eine unterbrochene Sitzung fortsetzen.
+  useEffect(() => {
+    const saved = readStore();
+    if (!saved) return;
+    startedAtRef.current = saved.startedAt;
+    anchorRef.current = saved.anchor;
+    carriedRef.current = saved.carried;
+    setMinutes(saved.minutes);
+    if (saved.taskId) setSelectedId(saved.taskId);
+    if (saved.anchor !== null) {
+      setRunning(true);
+      setNote("Deine Sitzung lief weiter.");
+    } else {
+      setElapsed(saved.carried);
+      setNote("Pausierte Sitzung wiederhergestellt.");
+    }
+  }, []);
+
   const target = minutes * 60;
   const remaining = Math.max(0, target - elapsed);
   const progress = target === 0 ? 0 : Math.min(100, (elapsed / target) * 100);
@@ -62,6 +130,7 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
       startedAtRef.current = null;
       anchorRef.current = null;
       carriedRef.current = 0;
+      writeStore(null);
       setRunning(false);
       setElapsed(0);
 
@@ -94,6 +163,7 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
     if (!startedAtRef.current) startedAtRef.current = new Date().toISOString();
     anchorRef.current = Date.now();
     setRunning(true);
+    persist();
   }
 
   function pause() {
@@ -102,6 +172,7 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
       anchorRef.current = null;
     }
     setRunning(false);
+    persist();
   }
 
   function stop() {
@@ -154,24 +225,23 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
               "10px 12px 26px var(--color-shade), -8px -10px 22px var(--color-glow), inset 1px 1px 2px rgb(255 255 255 / 0.05)",
           }}
         >
-          <span
-            aria-hidden
-            className={cn(
-              "absolute left-[16%] top-[13%] h-2 w-2 rounded-full bg-white/70",
-              running && "animate-soft-pulse",
-            )}
-          />
           <div className="text-center">
             <div
               className="display tnum text-[3rem] leading-none text-ink"
               role="timer"
-              aria-live="off"
+              aria-hidden
             >
               {clock(remaining)}
             </div>
-            <div className="mt-1 text-xs text-ink-dim">
-              {running ? "läuft" : active ? "pausiert" : `${minutes} Minuten`}
-            </div>
+            {/* Nur der Zustand wird angesagt, nicht jede Sekunde — sonst
+                redet der Screenreader ununterbrochen. */}
+            <p role="status" className="mt-1 text-xs text-ink-dim">
+              {running
+                ? `läuft, noch ${clock(remaining)}`
+                : active
+                  ? `pausiert bei ${clock(remaining)}`
+                  : `${minutes} Minuten`}
+            </p>
           </div>
         </div>
       </div>
@@ -200,8 +270,14 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
 
       {/* Dauer */}
       <div>
-        <p className="label-xs mb-2">Dauer</p>
-        <div className="nm-sink flex gap-1.5 rounded-full p-1.5">
+        <p className="label-xs mb-2" id="dauer-label">
+          Dauer
+        </p>
+        <div
+          className="nm-sink flex gap-1.5 rounded-full p-1.5"
+          role="group"
+          aria-labelledby="dauer-label"
+        >
           {PRESETS.map((m) => (
             <button
               key={m}
@@ -210,7 +286,7 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
               aria-pressed={m === minutes}
               onClick={() => setMinutes(m)}
               className={cn(
-                "tnum h-10 flex-1 rounded-full text-sm font-semibold transition-all duration-200 disabled:opacity-40",
+                "tnum h-11 flex-1 rounded-full text-sm font-semibold transition-all duration-200 disabled:opacity-60",
                 m === minutes ? "nm-accent" : "text-ink-dim hover:text-ink",
               )}
             >
@@ -218,17 +294,24 @@ export function FocusTimer({ candidates }: { candidates: FocusCandidate[] }) {
             </button>
           ))}
         </div>
+        {active ? (
+          <p className="mt-2 text-xs text-ink-dim">
+            Während einer Sitzung lässt sich die Dauer nicht ändern.
+          </p>
+        ) : null}
       </div>
 
       {/* Aufgabenwahl */}
       <div>
-        <p className="label-xs mb-3">Woran arbeitest du?</p>
+        <p className="label-xs mb-3" id="aufgabe-label">
+          Woran arbeitest du?
+        </p>
         {candidates.length === 0 ? (
           <div className="nm-sink rounded-2xl px-5 py-6 text-center text-sm text-ink-soft">
             Keine offene Aufgabe. Du kannst trotzdem eine freie Sitzung laufen lassen.
           </div>
         ) : (
-          <ul className="flex flex-col gap-2.5">
+          <ul className="flex flex-col gap-2.5" aria-labelledby="aufgabe-label">
             {candidates.slice(0, 6).map((c) => {
               const score = priorityScore(c.task);
               const chosen = c.task.id === selectedId;

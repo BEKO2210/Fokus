@@ -48,8 +48,12 @@ export function MomentumDial({
           >
             {s.icon}
           </div>
-          <span className="tnum text-[0.7rem] font-semibold text-ink-soft">{s.value}</span>
-          <span className="sr-only">{s.label}</span>
+          <span className="tnum text-[0.8rem] font-bold text-ink">{s.value}</span>
+          {/* Die Beschriftung stand vorher nur in sr-only — sehende Nutzer sahen
+              vier nackte Zahlen und konnten das Herzstück nicht lesen. */}
+          <span className="max-w-[5.5rem] text-center text-[0.6rem] leading-tight text-ink-dim">
+            {s.label}
+          </span>
         </div>
       ))}
 
@@ -62,11 +66,6 @@ export function MomentumDial({
             "10px 12px 26px var(--color-shade), -8px -10px 22px var(--color-glow), inset 1px 1px 2px rgb(255 255 255 / 0.05)",
         }}
       >
-        {/* Lichtpunkt oben links, wie in der Vorlage */}
-        <span
-          aria-hidden
-          className="absolute left-[16%] top-[13%] h-2 w-2 rounded-full bg-white/70 blur-[0.5px]"
-        />
         <div className="text-center">
           <div className="display tnum text-[3.4rem] leading-none text-ink">{value}</div>
           <div className="mt-1 text-sm font-medium text-ink-dim">{unit}</div>

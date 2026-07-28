@@ -65,7 +65,7 @@ export function ProjectCard({ project }: { project: ProjectWithStats }) {
         <p className="mt-4 text-sm text-ink-dim">Keine offene Aufgabe.</p>
       )}
 
-      {(deadline || project.stack.length > 0) && (
+      {(deadline || project.tags.length > 0) && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {deadline ? (
             <Chip tone={overdue ? "danger" : days !== null && days <= 7 ? "warn" : "muted"}>
@@ -73,10 +73,10 @@ export function ProjectCard({ project }: { project: ProjectWithStats }) {
               {deadline}
             </Chip>
           ) : null}
-          {project.stack.slice(0, 3).map((s) => (
+          {project.tags.slice(0, 3).map((s) => (
             <Chip key={s}>{s}</Chip>
           ))}
-          {project.stack.length > 3 ? <Chip>+{project.stack.length - 3}</Chip> : null}
+          {project.tags.length > 3 ? <Chip>+{project.tags.length - 3}</Chip> : null}
         </div>
       )}
     </Link>

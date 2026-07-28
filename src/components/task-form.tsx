@@ -37,6 +37,15 @@ export function TaskForm({
     undefined,
   );
 
+  // Eingaben nach einem Serverfehler wieder einsetzen.
+  const kept = state?.values;
+  const value = (key: string, fallback: string) => kept?.[key] ?? fallback;
+  const num = (key: string, fallback: number) => {
+    const raw = kept?.[key];
+    const parsed = raw ? Number.parseInt(raw, 10) : NaN;
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
   return (
     <form action={formAction} className="flex flex-col gap-6">
       <input type="hidden" name="projectId" value={projectId} />
@@ -48,22 +57,42 @@ export function TaskForm({
           name="title"
           required
           maxLength={200}
-          defaultValue={task?.title}
+          defaultValue={value("title", task?.title ?? "")}
           placeholder="Was genau ist zu tun?"
         />
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Rating name="impact" label="Wirkung" defaultValue={task?.impact ?? 3} />
-        <Rating name="urgency" label="Dringlichkeit" defaultValue={task?.urgency ?? 3} />
-        <Rating name="effort" label="Aufwand" defaultValue={task?.effort ?? 3} />
+      <div className="nm-sink flex flex-col gap-6 rounded-[var(--radius-card)] p-5">
+        <p className="text-xs leading-relaxed text-ink-dim">
+          Vier kurze Einschätzungen, danach rechnet Fokus aus, was zuerst dran ist.
+          Schätz einfach aus dem Bauch — es muss nicht stimmen, es muss nur helfen.
+        </p>
+        <div className="grid gap-6 sm:grid-cols-3">
+          <Rating
+            name="impact"
+            label="Bringt viel"
+            hint="Wie viel ändert sich, wenn es erledigt ist?"
+            defaultValue={num("impact", task?.impact ?? 3)}
+          />
+          <Rating
+            name="urgency"
+            label="Eilt"
+            hint="Wie teuer wird es, wenn du wartest?"
+            defaultValue={num("urgency", task?.urgency ?? 3)}
+          />
+          <Rating
+            name="effort"
+            label="Kostet Kraft"
+            hint="Wie groß ist der Brocken?"
+            defaultValue={num("effort", task?.effort ?? 3)}
+          />
+        </div>
+        <ConfidenceSlider name="confidence" defaultValue={num("confidence", task?.confidence ?? 80)} />
       </div>
-
-      <ConfidenceSlider name="confidence" defaultValue={task?.confidence ?? 80} />
 
       <div className="grid gap-6 sm:grid-cols-2">
         <Field label="Spalte" htmlFor={`status-${task?.id ?? "neu"}`}>
-          <Select id={`status-${task?.id ?? "neu"}`} name="status" defaultValue={task?.status ?? "inbox"}>
+          <Select id={`status-${task?.id ?? "neu"}`} name="status" defaultValue={value("status", task?.status ?? "inbox")}>
             {TASK_STATUS.map((s) => (
               <option key={s} value={s}>
                 {TASK_STATUS_LABEL[s]}
@@ -77,7 +106,7 @@ export function TaskForm({
             id={`due-${task?.id ?? "neu"}`}
             name="dueDate"
             type="date"
-            defaultValue={toDateInput(task?.dueDate ?? null)}
+            defaultValue={value("dueDate", toDateInput(task?.dueDate ?? null))}
           />
         </Field>
       </div>
@@ -87,7 +116,7 @@ export function TaskForm({
           id={`notes-${task?.id ?? "neu"}`}
           name="notes"
           maxLength={4000}
-          defaultValue={task?.notes ?? ""}
+          defaultValue={value("notes", task?.notes ?? "")}
           placeholder="Kontext, Links, nächster konkreter Schritt …"
         />
       </Field>

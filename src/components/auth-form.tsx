@@ -19,6 +19,7 @@ export function AuthForm({
 }) {
   const [state, formAction] = useActionState<FormState, FormData>(action, undefined);
   const isRegister = mode === "register";
+  const kept = state?.values;
 
   return (
     <div className="animate-rise">
@@ -51,7 +52,14 @@ export function AuthForm({
       <form action={formAction} className="flex flex-col gap-5">
         {isRegister ? (
           <Field label="Name" htmlFor="name">
-            <Input id="name" name="name" autoComplete="name" required placeholder="Wie heißt du?" />
+            <Input
+              id="name"
+              name="name"
+              autoComplete="name"
+              required
+              defaultValue={kept?.name ?? ""}
+              placeholder="Wie heißt du?"
+            />
           </Field>
         ) : null}
 
@@ -63,6 +71,7 @@ export function AuthForm({
             inputMode="email"
             autoComplete="email"
             required
+            defaultValue={kept?.email ?? ""}
             placeholder="du@beispiel.de"
           />
         </Field>
@@ -98,7 +107,7 @@ export function AuthForm({
         ) : (
           <Link
             href="/passwort-vergessen"
-            className="-mt-1 self-start text-sm text-ink-soft underline-offset-4 hover:text-accent hover:underline"
+            className="-my-2 self-start py-3 text-sm text-ink-soft underline-offset-4 hover:text-accent hover:underline"
           >
             Passwort vergessen?
           </Link>
@@ -115,7 +124,7 @@ export function AuthForm({
         {isRegister ? "Schon ein Konto? " : "Noch kein Konto? "}
         <Link
           href={isRegister ? "/anmelden" : "/registrieren"}
-          className="font-semibold text-accent underline-offset-4 hover:underline"
+          className="-my-2 inline-block py-3 font-semibold text-accent underline-offset-4 hover:underline"
         >
           {isRegister ? "Anmelden" : "Registrieren"}
         </Link>

@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 
-/** Fuenfstufiger Regler. Aktive Stufe ist eingelassen, nicht farbig ueberladen. */
+const STEPS = [1, 2, 3, 4, 5] as const;
+
+/**
+ * Fünfstufiger Regler nach dem Radiogroup-Muster.
+ *
+ * Wichtig ist der wandernde Tabindex: nur die gewählte Stufe ist per Tab
+ * erreichbar, gewechselt wird mit den Pfeiltasten. Sonst müsste man sich pro
+ * Aufgabenformular durch fünfzehn Tabstopps arbeiten, und Screenreader im
+ * Formularmodus bekämen auf die Pfeiltasten gar keine Reaktion.
+ */
 export function Rating({
   name,
   label,
@@ -17,25 +26,64 @@ export function Rating({
   hint?: string;
 }) {
   const [value, setValue] = useState(defaultValue);
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  function move(to: number) {
+    const next = Math.min(5, Math.max(1, to));
+    setValue(next);
+    refs.current[next - 1]?.focus();
+  }
+
+  function onKeyDown(event: React.KeyboardEvent) {
+    switch (event.key) {
+      case "ArrowRight":
+      case "ArrowDown":
+        event.preventDefault();
+        move(value + 1);
+        break;
+      case "ArrowLeft":
+      case "ArrowUp":
+        event.preventDefault();
+        move(value - 1);
+        break;
+      case "Home":
+        event.preventDefault();
+        move(1);
+        break;
+      case "End":
+        event.preventDefault();
+        move(5);
+        break;
+    }
+  }
 
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="label-xs mb-2">{label}</legend>
       <input type="hidden" name={name} value={value} />
-      <div className="nm-sink flex gap-1.5 rounded-full p-1.5" role="radiogroup" aria-label={label}>
-        {[1, 2, 3, 4, 5].map((n) => {
+      <div
+        className="nm-raise-sm flex gap-1.5 rounded-full p-1.5"
+        role="radiogroup"
+        aria-label={hint ? `${label} — ${hint}` : label}
+        onKeyDown={onKeyDown}
+      >
+        {STEPS.map((n) => {
           const active = n === value;
           return (
             <button
               key={n}
+              ref={(el) => {
+                refs.current[n - 1] = el;
+              }}
               type="button"
               role="radio"
               aria-checked={active}
-              aria-label={`${label}: ${n} von 5`}
+              aria-label={`${n} von 5`}
+              tabIndex={active ? 0 : -1}
               onClick={() => setValue(n)}
               className={cn(
-                "tnum h-9 flex-1 rounded-full text-sm font-semibold transition-all duration-200",
-                active ? "nm-accent" : "text-ink-dim hover:text-ink",
+                "tnum h-11 flex-1 rounded-full text-sm font-semibold transition-all duration-200",
+                active ? "nm-accent" : "text-ink-soft hover:text-ink",
               )}
             >
               {n}
@@ -43,7 +91,7 @@ export function Rating({
           );
         })}
       </div>
-      {hint ? <p className="text-xs text-ink-dim">{hint}</p> : null}
+      <p className="text-xs text-ink-dim">{hint ? `${hint} 1 = kaum, 5 = sehr viel.` : "1 = kaum, 5 = sehr viel."}</p>
     </fieldset>
   );
 }
@@ -61,10 +109,13 @@ export function ConfidenceSlider({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
-        <span className="label-xs">Zuversicht</span>
+        <label className="label-xs" htmlFor={`slider-${name}`}>
+          Wie sicher bist du dir?
+        </label>
         <span className="tnum text-sm font-semibold text-accent">{value} %</span>
       </div>
       <input
+        id={`slider-${name}`}
         type="range"
         name={name}
         min={0}
@@ -72,8 +123,7 @@ export function ConfidenceSlider({
         step={5}
         value={value}
         onChange={(e) => setValue(Number(e.target.value))}
-        aria-label="Zuversicht in Prozent"
-        className="h-6 w-full cursor-pointer appearance-none bg-transparent
+        className="h-11 w-full cursor-pointer appearance-none bg-transparent
           [&::-webkit-slider-runnable-track]:h-3 [&::-webkit-slider-runnable-track]:rounded-full
           [&::-webkit-slider-runnable-track]:shadow-[var(--nm-sink-sm)]
           [&::-webkit-slider-thumb]:mt-[-0.375rem] [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6

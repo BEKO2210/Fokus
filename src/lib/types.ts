@@ -15,17 +15,36 @@ export type Project = {
   health: ProjectHealth;
   accent: string;
   deadline: string | null;
-  stack: string[];
-  repoUrl: string | null;
-  liveUrl: string | null;
-  localPath: string | null;
-  port: number | null;
+  /** Freie Schlagwörter — was auch immer der Person hilft, das Projekt einzuordnen. */
+  tags: string[];
+  /** Zeilen der Form "Titel|Adresse". Ohne Titel wird die Adresse angezeigt. */
+  links: string[];
+  /** Wo das Projekt sonst noch lebt: Ordner, Regal, Werkstatt, Cloud. */
+  place: string | null;
   pinned: boolean;
   sortIndex: number;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
 };
+
+export type ProjectLink = { label: string; href: string };
+
+/** "Titel|https://…" oder nur "https://…" in etwas Anzeigbares verwandeln. */
+export function parseLink(raw: string): ProjectLink | null {
+  const [first, ...rest] = raw.split("|");
+  const href = (rest.length ? rest.join("|") : first).trim();
+  const label = rest.length ? first.trim() : "";
+  if (!/^https?:\/\//i.test(href)) return null;
+  if (!label) {
+    try {
+      return { label: new URL(href).hostname.replace(/^www\./, ""), href };
+    } catch {
+      return null;
+    }
+  }
+  return { label, href };
+}
 
 export type Task = {
   id: string;
@@ -64,16 +83,16 @@ export type ProjectWithStats = Project & {
 
 export const STATUS_LABEL: Record<ProjectStatus, string> = {
   idea: "Idee",
-  active: "Aktiv",
+  active: "Läuft",
   paused: "Pausiert",
-  shipped: "Live",
+  shipped: "Fertig",
   archived: "Archiv",
 };
 
 export const HEALTH_LABEL: Record<ProjectHealth, string> = {
-  on_track: "Läuft",
+  on_track: "Alles gut",
   at_risk: "Wackelt",
-  blocked: "Blockiert",
+  blocked: "Steckt fest",
 };
 
 export const HEALTH_COLOR: Record<ProjectHealth, string> = {

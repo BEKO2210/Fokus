@@ -9,7 +9,27 @@ import { createSessionClient, getUser } from "@/lib/appwrite/server";
 import { TASK_STATUS } from "@/lib/types";
 import type { TaskStatus } from "@/lib/types";
 
-export type TaskActionState = { error?: string; ok?: boolean } | undefined;
+export type TaskActionState =
+  | { error?: string; ok?: boolean; values?: Record<string, string> }
+  | undefined;
+
+const TASK_FIELDS = [
+  "title",
+  "notes",
+  "impact",
+  "urgency",
+  "effort",
+  "confidence",
+  "status",
+  "dueDate",
+] as const;
+
+/** Eingaben zurück ins Formular tragen — React leert es sonst bei jedem Fehler. */
+function keepValues(fd: FormData): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of TASK_FIELDS) out[key] = String(fd.get(key) ?? "");
+  return out;
+}
 
 async function ctx() {
   const [client, user] = await Promise.all([createSessionClient(), getUser()]);
@@ -46,7 +66,7 @@ export async function createTask(_prev: TaskActionState, fd: FormData): Promise<
   const data = taskPayload(fd);
 
   if (!projectId) return { error: "Kein Projekt gewählt." };
-  if (!data.title) return { error: "Die Aufgabe braucht einen Titel." };
+  if (!data.title) return { error: "Die Aufgabe braucht einen Titel.", values: keepValues(fd) };
 
   try {
     await databases.createDocument({
@@ -61,7 +81,11 @@ export async function createTask(_prev: TaskActionState, fd: FormData): Promise<
       ],
     });
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Speichern fehlgeschlagen." };
+    console.error("[tasks] Speichern fehlgeschlagen", err);
+    return {
+      error: "Konnte nicht gespeichert werden. Bitte gleich noch einmal versuchen.",
+      values: keepValues(fd),
+    };
   }
 
   revalidatePath("/");
@@ -77,7 +101,7 @@ export async function updateTask(_prev: TaskActionState, fd: FormData): Promise<
   const data = taskPayload(fd);
 
   if (!id) return { error: "Aufgabe nicht gefunden." };
-  if (!data.title) return { error: "Die Aufgabe braucht einen Titel." };
+  if (!data.title) return { error: "Die Aufgabe braucht einen Titel.", values: keepValues(fd) };
 
   try {
     await databases.updateDocument({
@@ -90,7 +114,11 @@ export async function updateTask(_prev: TaskActionState, fd: FormData): Promise<
       },
     });
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Speichern fehlgeschlagen." };
+    console.error("[tasks] Speichern fehlgeschlagen", err);
+    return {
+      error: "Konnte nicht gespeichert werden. Bitte gleich noch einmal versuchen.",
+      values: keepValues(fd),
+    };
   }
 
   revalidatePath("/");

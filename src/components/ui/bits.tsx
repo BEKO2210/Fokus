@@ -119,7 +119,7 @@ export function EmptyState({
   return (
     <div className="nm-sink flex flex-col items-center gap-3 rounded-[var(--radius-card)] px-6 py-12 text-center">
       {icon ? <div className="nm-raise-sm grid h-14 w-14 place-items-center rounded-2xl text-accent">{icon}</div> : null}
-      <h3 className="text-base font-semibold text-ink">{title}</h3>
+      <h2 className="text-base font-semibold text-ink">{title}</h2>
       <p className="max-w-xs text-sm leading-relaxed text-ink-soft">{body}</p>
       {action}
     </div>
