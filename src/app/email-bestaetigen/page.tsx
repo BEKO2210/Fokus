@@ -32,7 +32,7 @@ export default async function ConfirmEmailPage({ searchParams }: Props) {
               mal vergisst, kommst du wieder rein.
             </p>
             <Link
-              href="/"
+              href="/uebersicht"
               className="nm-accent nm-press mt-8 inline-flex h-12 items-center gap-2 rounded-full px-7 text-sm font-semibold"
             >
               <Icon.Check className="h-4 w-4" />

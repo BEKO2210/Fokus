@@ -4,20 +4,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Client, Query, Users } from "node-appwrite";
 
-import { APPWRITE, SESSION_COOKIE } from "@/lib/appwrite/config";
+import { APPWRITE, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/appwrite/config";
 import { createAdminClient } from "@/lib/appwrite/server";
 import { passwordResetMail, sendMail } from "@/lib/mail";
 import { clientIp, hit } from "@/lib/rate-limit";
 
 export type RecoveryState = { error?: string; sent?: boolean } | undefined;
-
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  maxAge: 60 * 60 * 24 * 365,
-} as const;
 
 /** Eine Stunde, danach ist der Link tot. */
 const TOKEN_TTL_SECONDS = 60 * 60;
@@ -124,7 +116,7 @@ export async function completePasswordReset(
     // Appwrite beendet beim Passwortwechsel sämtliche Sessions. Also frisch
     // anmelden, sonst landet der Nutzer trotz Erfolg wieder auf dem Login.
     const session = await account.createEmailPasswordSession({ email, password });
-    (await cookies()).set(SESSION_COOKIE, session.secret, COOKIE_OPTIONS);
+    (await cookies()).set(SESSION_COOKIE, session.secret, SESSION_COOKIE_OPTIONS);
   } catch (err) {
     console.error("[recovery] Einlösen fehlgeschlagen", err);
     return {
@@ -132,5 +124,5 @@ export async function completePasswordReset(
     };
   }
 
-  redirect("/");
+  redirect("/uebersicht");
 }

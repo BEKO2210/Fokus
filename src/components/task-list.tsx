@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 
 import { Icon } from "@/components/icons";
+import { ScoreWhy } from "@/components/score-why";
 import { TaskForm } from "@/components/task-form";
 import { Chip } from "@/components/ui/bits";
 import { Button } from "@/components/ui/button";
 import { deleteTask, setTaskStatus, updateTask } from "@/lib/actions/tasks";
 import { cn } from "@/lib/cn";
-import { LEVEL_COLOR, LEVEL_LABEL, formatDeadline, priorityLevel, priorityScore } from "@/lib/score";
+import { LEVEL_COLOR, LEVEL_LABEL, formatDeadline, formatScore, priorityLevel, priorityScore } from "@/lib/score";
 import { TASK_STATUS_LABEL } from "@/lib/types";
 import type { Task, TaskStatus } from "@/lib/types";
 
@@ -124,7 +125,7 @@ function TaskRow({
                 className="tnum inline-flex items-center gap-1.5 text-xs font-semibold"
                 style={{ color: LEVEL_COLOR[level] }}
               >
-                {score.toFixed(1)}
+                {formatScore(score)}
                 <span className="font-normal text-ink-dim">{LEVEL_LABEL[level]}</span>
               </span>
             ) : null}
@@ -143,6 +144,11 @@ function TaskRow({
 
       {open ? (
         <div className="border-t border-white/5 px-4 pb-5 pt-5">
+          {!done ? (
+            <div className="mb-5">
+              <ScoreWhy task={task} defaultOpen />
+            </div>
+          ) : null}
           {task.notes ? (
             <p className="nm-sink-sm mb-5 whitespace-pre-wrap rounded-2xl p-4 text-sm leading-relaxed text-ink-soft">
               {task.notes}

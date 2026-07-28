@@ -13,6 +13,11 @@ export function priorityScore(t: ScoreInput): number {
   return Math.round(raw * 10) / 10;
 }
 
+/** Deutsche Schreibweise, damit "10,0" überall gleich aussieht. */
+export function formatScore(score: number): string {
+  return score.toFixed(1).replace(".", ",");
+}
+
 export type PriorityLevel = "critical" | "high" | "medium" | "low";
 
 export function priorityLevel(score: number): PriorityLevel {

@@ -41,6 +41,6 @@ export async function logFocusSession(input: {
   });
 
   revalidatePath("/fokus");
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   return { ok: true };
 }

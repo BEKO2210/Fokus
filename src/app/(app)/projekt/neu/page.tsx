@@ -10,7 +10,7 @@ export default function NewProjectPage() {
   return (
     <div className="animate-rise">
       <PageHeader
-        back="/"
+        back="/uebersicht"
         eyebrow="Anlegen"
         title={
           <>

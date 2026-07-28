@@ -8,13 +8,13 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/cn";
 
 const ITEMS = [
-  { href: "/", label: "Übersicht", icon: Icon.Grid },
+  { href: "/uebersicht", label: "Übersicht", icon: Icon.Grid },
   { href: "/fokus", label: "Fokus", icon: Icon.Target },
   { href: "/einstellungen", label: "Konto", icon: Icon.Sliders },
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /** Unten auf dem Handy, links am Rand ab Tablet. */
@@ -62,7 +62,7 @@ export function AppNav() {
         className="fixed left-0 top-0 z-40 hidden h-dvh w-24 flex-col items-center gap-4 py-8 md:flex"
       >
         <Link
-          href="/"
+          href="/uebersicht"
           aria-label="Fokus Startseite"
           className="nm-raise nm-press grid h-12 w-12 place-items-center rounded-2xl"
         >

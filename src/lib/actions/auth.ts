@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppwriteException, ID } from "node-appwrite";
 
-import { SESSION_COOKIE } from "@/lib/appwrite/config";
+import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/appwrite/config";
 import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
 import { sendVerificationMail } from "@/lib/actions/verify";
 import { clientIp, hit, minutes } from "@/lib/rate-limit";
@@ -17,14 +17,6 @@ export type FormState =
 function keep(name: string, email: string) {
   return { name, email };
 }
-
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  maxAge: 60 * 60 * 24 * 30,
-} as const;
 
 function readable(err: unknown): string {
   if (err instanceof AppwriteException) {
@@ -74,7 +66,7 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
     const created = await account.create({ userId: ID.unique(), email, password, name });
     userId = created.$id;
     const session = await account.createEmailPasswordSession({ email, password });
-    (await cookies()).set(SESSION_COOKIE, session.secret, COOKIE_OPTIONS);
+    (await cookies()).set(SESSION_COOKIE, session.secret, SESSION_COOKIE_OPTIONS);
   } catch (err) {
     return { error: readable(err), values: keep(name, email) };
   }
@@ -83,7 +75,7 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
   // lässt sich später über das Hinweisband erneut bestätigen.
   await sendVerificationMail(userId, email, name);
 
-  redirect("/");
+  redirect("/uebersicht");
 }
 
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -110,12 +102,12 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   try {
     const { account } = createAdminClient();
     const session = await account.createEmailPasswordSession({ email, password });
-    (await cookies()).set(SESSION_COOKIE, session.secret, COOKIE_OPTIONS);
+    (await cookies()).set(SESSION_COOKIE, session.secret, SESSION_COOKIE_OPTIONS);
   } catch (err) {
     return { error: readable(err), values: keep("", email) };
   }
 
-  redirect("/");
+  redirect("/uebersicht");
 }
 
 export async function logout() {

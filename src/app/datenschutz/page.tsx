@@ -167,15 +167,33 @@ export default function DatenschutzPage() {
             </td>
             <td>Cookie</td>
             <td>hält die Anmeldung, technisch notwendig</td>
-            <td>12 Monate</td>
+            <td>30 Tage</td>
+          </tr>
+          <tr>
+            <td>
+              <code>fokus.timer.v1</code>
+            </td>
+            <td>Local Storage</td>
+            <td>laufende Fokussitzung, damit sie einen Seitenwechsel übersteht</td>
+            <td>bis zum Ende der Sitzung</td>
+          </tr>
+          <tr>
+            <td>
+              <code>fokus.pending-sessions.v1</code>
+            </td>
+            <td>Local Storage</td>
+            <td>ohne Netz beendete Sitzungen, bis sie übertragen sind</td>
+            <td>bis zur Übertragung</td>
           </tr>
         </tbody>
       </table>
       <p>
         Das Cookie ist <code>HttpOnly</code> und <code>Secure</code> gesetzt und damit für
-        JavaScript nicht lesbar. Zusätzlich legt der Service Worker Programmdateien und
-        Symbole im Browser-Cache ab, damit die App offline eine Hinweisseite zeigen kann —
-        Projektdaten werden dabei <strong>nicht</strong> zwischengespeichert.
+        JavaScript nicht lesbar. Die beiden Local-Storage-Einträge bleiben ausschließlich
+        auf deinem Gerät und werden an niemanden außer den eigenen Server übertragen.
+        Zusätzlich legt der Service Worker Programmdateien und Symbole im Browser-Cache ab,
+        damit die App offline eine Hinweisseite zeigen kann — Projektdaten werden dabei{" "}
+        <strong>nicht</strong> zwischengespeichert.
       </p>
 
       <h2>Deine Rechte</h2>

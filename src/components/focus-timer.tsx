@@ -6,9 +6,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { logFocusSession } from "@/lib/actions/sessions";
+import { enqueue, readPending, replacePending } from "@/lib/offline-queue";
 import { cn } from "@/lib/cn";
 import { plural } from "@/lib/plural";
-import { LEVEL_COLOR, priorityLevel, priorityScore } from "@/lib/score";
+import { LEVEL_COLOR, formatScore, priorityLevel, priorityScore } from "@/lib/score";
 import type { Task } from "@/lib/types";
 
 const PRESETS = [15, 25, 50] as const;
@@ -101,6 +102,35 @@ export function FocusTimer({
     });
   }, [minutes, selectedId]);
 
+  /** Gepufferte Sitzungen nachreichen. Was nicht durchgeht, bleibt in der Schlange. */
+  const flush = useCallback(async () => {
+    const offen = readPending();
+    if (offen.length === 0) return;
+
+    const rest: typeof offen = [];
+    let uebertragen = 0;
+    for (const eintrag of offen) {
+      try {
+        await logFocusSession(eintrag);
+        uebertragen++;
+      } catch {
+        rest.push(eintrag);
+      }
+    }
+    replacePending(rest);
+    if (uebertragen > 0) {
+      setNote(
+        `${plural(uebertragen, "gespeicherte Sitzung", "gespeicherte Sitzungen")} nachgetragen.`,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    void flush();
+    window.addEventListener("online", flush);
+    return () => window.removeEventListener("online", flush);
+  }, [flush]);
+
   // Beim Mounten eine unterbrochene Sitzung fortsetzen.
   useEffect(() => {
     const saved = readStore();
@@ -149,14 +179,23 @@ export function FocusTimer({
         return;
       }
 
-      await logFocusSession({
+      const eintrag = {
         projectId: selected?.projectId ?? null,
         taskId: selected?.task.id ?? null,
         label: selected?.task.title ?? null,
         seconds,
         startedAt,
-      });
-      setNote(`${plural(Math.round(seconds / 60), "Minute", "Minuten")} protokolliert.`);
+      };
+      const dauer = plural(Math.round(seconds / 60), "Minute", "Minuten");
+
+      try {
+        await logFocusSession(eintrag);
+        setNote(`${dauer} protokolliert.`);
+      } catch {
+        // Kein Netz oder Server weg — die Sitzung darf trotzdem nicht verfallen.
+        enqueue(eintrag);
+        setNote(`${dauer} gespeichert. Wird nachgetragen, sobald du wieder online bist.`);
+      }
     },
     [selected],
   );
@@ -362,7 +401,7 @@ export function FocusTimer({
                       className="tnum w-11 shrink-0 text-sm font-bold"
                       style={{ color: LEVEL_COLOR[priorityLevel(score)] }}
                     >
-                      {score.toFixed(1)}
+                      {formatScore(score)}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span

@@ -39,7 +39,7 @@ export default async function ProjectPage({ params }: Props) {
   return (
     <div className="animate-rise">
       <PageHeader
-        back="/"
+        back="/uebersicht"
         eyebrow="Projekt"
         title={project.name}
         action={

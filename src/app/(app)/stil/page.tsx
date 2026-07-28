@@ -32,7 +32,7 @@ export default function StylePage() {
   return (
     <div className="animate-rise">
       <PageHeader
-        back="/"
+        back="/uebersicht"
         eyebrow="Baukasten"
         title="Stil"
         lead="Jedes Element hier ist die echte Komponente aus der App, kein Screenshot. Was hier gut aussieht, sieht überall gut aus."

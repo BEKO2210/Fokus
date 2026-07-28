@@ -176,7 +176,7 @@ export async function importBackup(_prev: ImportState, fd: FormData): Promise<Im
     }
   }
 
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath("/einstellungen");
 
   const kernaussage = `${plural(projectCount, "Projekt", "Projekte")} und ${plural(taskCount, "Aufgabe", "Aufgaben")} importiert.`;

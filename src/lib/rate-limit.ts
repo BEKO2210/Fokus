@@ -30,9 +30,29 @@ function sweep(now: number) {
 
 export type RateLimitResult = { ok: true } | { ok: false; retryAfterSeconds: number };
 
+/**
+ * Faktor für die Testinstanz.
+ *
+ * Die Grenzen sind absichtlich so eng, dass ein Testlauf dagegenläuft — genau
+ * das soll ein Angreifer ja auch erleben. Der Playwright-Server startet
+ * deshalb auf einem eigenen Port mit hohem Faktor; die Produktivinstanz kennt
+ * die Variable nicht und bleibt bei 1.
+ */
+const MULTIPLIER = (() => {
+  const raw = Number.parseInt(process.env.FOKUS_RATE_LIMIT_MULTIPLIER ?? "1", 10);
+  if (!Number.isFinite(raw) || raw < 1) return 1;
+  if (raw > 1) {
+    console.warn(
+      `[rate-limit] Grenzen um Faktor ${raw} gelockert — darf nur in einer Testinstanz gesetzt sein.`,
+    );
+  }
+  return Math.min(raw, 10_000);
+})();
+
 export function hit(key: string, limit: number, windowSeconds: number): RateLimitResult {
   const now = Date.now();
   sweep(now);
+  limit = limit * MULTIPLIER;
 
   const existing = buckets.get(key);
   if (!existing || existing.resetAt <= now) {

@@ -88,7 +88,7 @@ export async function createTask(_prev: TaskActionState, fd: FormData): Promise<
     };
   }
 
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${projectId}`);
   revalidatePath("/fokus");
   return { ok: true };
@@ -121,7 +121,7 @@ export async function updateTask(_prev: TaskActionState, fd: FormData): Promise<
     };
   }
 
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${projectId}`);
   revalidatePath("/fokus");
   return { ok: true };
@@ -141,7 +141,7 @@ export async function setTaskStatus(id: string, projectId: string, status: TaskS
     },
   });
 
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${projectId}`);
   revalidatePath("/fokus");
 }
@@ -153,7 +153,7 @@ export async function deleteTask(id: string, projectId: string) {
     collectionId: COLLECTIONS.tasks,
     documentId: id,
   });
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${projectId}`);
   revalidatePath("/fokus");
 }

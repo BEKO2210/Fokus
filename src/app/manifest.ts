@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Fokus",
     description:
       "Alle Projekte auf einen Blick: Status, Fortschritt, Deadlines und die eine Aufgabe, die als Nächstes zählt.",
-    start_url: "/",
+    start_url: "/uebersicht",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

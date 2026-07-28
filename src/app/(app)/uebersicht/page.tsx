@@ -4,6 +4,7 @@ import { FocusBars } from "@/components/focus-bars";
 import { Icon } from "@/components/icons";
 import { MomentumDial } from "@/components/momentum-dial";
 import { ProjectCard } from "@/components/project-card";
+import { ScoreWhy } from "@/components/score-why";
 import { Chip, EmptyState, SectionTitle } from "@/components/ui/bits";
 import { LinkButton } from "@/components/ui/button";
 import { getUser } from "@/lib/appwrite/server";
@@ -106,13 +107,10 @@ export default async function OverviewPage() {
                   >
                     {nextProject.name}
                   </Link>
-                  <div className="mt-5 flex items-center justify-between gap-4">
-                    <div>
-                      <span className="tnum display text-3xl text-accent-gradient">
-                        {next.score.toFixed(1)}
-                      </span>
-                      <span className="ml-2 text-xs text-ink-dim">Score</span>
-                    </div>
+                  <div className="mt-5">
+                    <ScoreWhy task={next.task} />
+                  </div>
+                  <div className="mt-5 flex justify-end">
                     <LinkButton href="/fokus" variant="accent" size="md">
                       <Icon.Play className="h-4 w-4" />
                       Fokus starten

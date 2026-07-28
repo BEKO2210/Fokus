@@ -139,7 +139,7 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
     };
   }
 
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   redirect(`/projekt/${id}`);
 }
 
@@ -166,7 +166,7 @@ export async function updateProject(_prev: ActionState, fd: FormData): Promise<A
     };
   }
 
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${id}`);
   return { ok: true };
 }
@@ -179,7 +179,7 @@ export async function togglePin(id: string, pinned: boolean) {
     documentId: id,
     data: { pinned },
   });
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${id}`);
 }
 
@@ -192,7 +192,7 @@ export async function setProjectStatus(id: string, status: ProjectStatus) {
     documentId: id,
     data: { status },
   });
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${id}`);
 }
 
@@ -205,7 +205,7 @@ export async function setProjectHealth(id: string, health: ProjectHealth) {
     documentId: id,
     data: { health },
   });
-  revalidatePath("/");
+  revalidatePath("/uebersicht");
   revalidatePath(`/projekt/${id}`);
 }
 
@@ -240,6 +240,6 @@ export async function deleteProject(id: string) {
     documentId: id,
   });
 
-  revalidatePath("/");
-  redirect("/");
+  revalidatePath("/uebersicht");
+  redirect("/uebersicht");
 }
